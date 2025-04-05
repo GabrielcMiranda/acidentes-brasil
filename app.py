@@ -2,8 +2,10 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import html, dcc, Input, Output
 from dash_bootstrap_templates import ThemeSwitchAIO
+from wordcloud import WordCloud
 import plotly.express as px
 import pandas as pd
+import matplotlib.pyplot as plt
 import seaborn as sns
 
 app = dash.Dash(__name__, external_stylesheets = [dbc.themes.BOOTSTRAP])
@@ -35,6 +37,15 @@ def definir_regiao(estado):
         return 'Sul'
     
 df['regiao'] = df['uf'].apply(lambda x: definir_regiao(x))
+
+def plotNuvemCausaAcidente():
+    palavras_nuvem = " ".join(df['causa_acidente'])  
+    nuvem = WordCloud(width=1000, height=500, background_color='white').generate(palavras_nuvem)
+
+    fig = px.imshow(nuvem.to_array(), height=1000)
+    return fig.update_layout(title='Nuvem de Palavras - Tipo de Acidente',
+                  xaxis=dict(showticklabels=False),
+                  yaxis=dict(showticklabels=False))
 
 # def barPlotAcidentesDiaSemana():
 #     df_qtd_acidentes = df['dia_semana'].value_counts().reset_index()
@@ -73,13 +84,13 @@ app.layout = dbc.Container([
             html.Br(),
             html.Br(),
             dbc.Row([
-                html.H4('Escolha a região ou estado que deseja analisar:')
+                html.H4('Escolha a região que deseja analisar:')
             ]),
             dbc.Row([
                 dcc.Dropdown(
                     id='regiao',
                     multi=True,
-                    value=df['regiao'].unique()[:2],
+                    value=df['regiao'].unique()[0:],
                     options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
                 )
             ])
@@ -102,13 +113,13 @@ app.layout = dbc.Container([
             html.Br(),
             html.Br(),
             dbc.Row([
-                html.H4('Escolha a região ou estado que deseja analisar:')
+                html.H4('Escolha a região que deseja analisar:')
             ]),
             dbc.Row([
                 dcc.Dropdown(
                     id='regiao2',
-                    multi=True,
-                    value=df['regiao'].unique()[:2],
+                    multi=False,
+                    value=df['regiao'].unique()[0],
                     options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
                 )
             ])
@@ -122,6 +133,12 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             dcc.Graph(id='bar_plot_morte_por_regiao')
+        ])
+    ]),
+
+    dbc.Row([
+        dbc.Col([
+            dcc.Graph(id='nuvem_palavras', figure=plotNuvemCausaAcidente())
         ])
     ]),
 
@@ -148,16 +165,20 @@ def barPlotRegiaoDiaSemana(regiao):
     Input('regiao2', 'value'),
 )
 def barPlotMortePorRegiao(regiao):
-    df_filtrado = df[(df['regiao'].isin(regiao)) & (df['mortos'] > 0)]
+    df_filtrado = df[(df['regiao']==regiao) & (df['mortos'] > 0)]
 
-    df_mortes = df_filtrado.groupby('regiao')['mortos'].sum().reset_index()
+    df_mortes = df_filtrado.groupby(['tipo_acidente', 'regiao'])['mortos'].value_counts().sort_values(ascending=False).reset_index()
+
+    df_mortes['mortos'] = [df_mortes['mortos'][i] * df_mortes['count'][i] for i in range(0,len(df_mortes))]
+
+    df_mortes = df_mortes.groupby(['tipo_acidente', 'regiao'])['mortos'].sum().sort_values(ascending=False).reset_index()
 
     fig = px.bar(df_mortes,  
-                 x='regiao',
-                 y='mortos',
-                 color='regiao',
-                 barmode="group")
-    return fig
+                 x='mortos',
+                 y='tipo_acidente',
+                 color='tipo_acidente',
+                 barmode="overlay")
+    return fig.update_layout(bargap=0.0, bargroupgap=0.05)
 
 if __name__ == '__main__':
     app.run(debug=True, port='8051')
