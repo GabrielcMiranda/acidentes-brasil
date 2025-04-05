@@ -36,6 +36,17 @@ def definir_regiao(estado):
     
 df['regiao'] = df['uf'].apply(lambda x: definir_regiao(x))
 
+# def barPlotAcidentesDiaSemana():
+#     df_qtd_acidentes = df['dia_semana'].value_counts().reset_index()
+#     df_qtd_acidentes.columns = ['dia_semana', 'quantidade']
+
+#     fig = px.bar(df_qtd_acidentes,  
+#                  x='dia_semana',
+#                  y='quantidade',
+#                  color='dia_semana',
+#                  barmode="group")
+#     return fig
+
 app.layout = dbc.Container([
 
     # 1 LINHA
@@ -68,8 +79,8 @@ app.layout = dbc.Container([
                 dcc.Dropdown(
                     id='regiao',
                     multi=True,
-                    value=df['uf'].unique()[:2],
-                    options=[{'label': estado, 'value': estado} for estado in df['uf'].unique()] + [{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
+                    value=df['regiao'].unique()[:2],
+                    options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
                 )
             ])
         ]),
@@ -85,6 +96,35 @@ app.layout = dbc.Container([
         ])
     ]),
 
+    # 5 LINHA
+    dbc.Row([
+        dbc.Col([
+            html.Br(),
+            html.Br(),
+            dbc.Row([
+                html.H4('Escolha a região ou estado que deseja analisar:')
+            ]),
+            dbc.Row([
+                dcc.Dropdown(
+                    id='regiao2',
+                    multi=True,
+                    value=df['regiao'].unique()[:2],
+                    options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
+                )
+            ])
+        ]),
+        dbc.Col([
+            dbc.Row([])
+        ])
+    ]),
+
+    # 6 LINHA
+    dbc.Row([
+        dbc.Col([
+            dcc.Graph(id='bar_plot_morte_por_regiao')
+        ])
+    ]),
+
 ])
 
 @app.callback(
@@ -92,33 +132,32 @@ app.layout = dbc.Container([
     Input('regiao', 'value'),
 )
 def barPlotRegiaoDiaSemana(regiao):
-    df_filtrado = df[df['uf'].isin(regiao) | df['regiao'].isin(regiao)]
+    df_filtrado = df[df['regiao'].isin(regiao)]
 
-    df_regiao_dia_semana = df_filtrado.groupby(['dia_semana', 'uf']).size().reset_index(name='quantidade')
+    df_regiao_dia_semana = df_filtrado.groupby(['dia_semana', 'regiao']).size().reset_index(name='quantidade')
 
     fig = px.bar(df_regiao_dia_semana,  
                  x='dia_semana',
                  y='quantidade',
-                 color='uf',
+                 color='regiao',
                  barmode="group")
     return fig
 
-    #ordem_dias = ['segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado', 'domingo']
-    #df_regiao_horario[horario] = pd.Categorical(df_regiao_horario[horario], categories=ordem_dias, ordered=True)
+@app.callback(
+    Output('bar_plot_morte_por_regiao', 'figure'),
+    Input('regiao2', 'value'),
+)
+def barPlotMortePorRegiao(regiao):
+    df_filtrado = df[(df['regiao'].isin(regiao)) & (df['mortos'] > 0)]
 
-#@app.callback(
-   # Output('bar_plot_media_minutos', 'figure'),
-   # Input('escolha_faixa_etaria2', 'value'),
-#)
-#def barPlotMediaMinutos(escolha_faixa_etaria):
-  #  df_media = df[df['Age Group'].isin(escolha_faixa_etaria)].groupby('Age Group')['Minutes Streamed Per Day'].mean()
+    df_mortes = df_filtrado.groupby('regiao')['mortos'].sum().reset_index()
 
-
-  #  fig = px.bar(df_media.reset_index(),
-  #               x='Age Group',
-   #              y='Minutes Streamed Per Day',
-   #              color='Age Group')
-   # return fig
+    fig = px.bar(df_mortes,  
+                 x='regiao',
+                 y='mortos',
+                 color='regiao',
+                 barmode="group")
+    return fig
 
 if __name__ == '__main__':
     app.run(debug=True, port='8051')
