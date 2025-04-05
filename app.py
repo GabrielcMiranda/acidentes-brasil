@@ -147,10 +147,58 @@ app.layout = dbc.Container([
             dcc.Graph(id='nuvem_palavras', figure=plotNuvemCausaAcidente())
         ])
     ]),
+# df 3
+    dbc.Row([
+        dbc.Row([
+            dbc.Col([
+                dcc.Dropdown(
+                    id='regiao3',
+                    multi=True,
+                    value=df['regiao'].unique()[0],
+                    options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
+                )
+            ])
+        ]),
+        dbc.Row([
+            dbc.Col([
+                dcc.Graph(id='scatterplot_horario_acidente')
+            ])
+        ])
+    ]),
 
     dbc.Row([
-        dbc.Col([
-            dcc.Graph(id='scatterplot')
+        dbc.Row([
+            dbc.Col([
+                dcc.Dropdown(
+                    id='regiao4',
+                    multi=True,
+                    value=df['regiao'].unique()[0],
+                    options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
+                )
+            ])
+        ]),
+        dbc.Row([
+            dbc.Col([
+                dcc.Graph(id='scatterplot_feridos_acidente')
+            ])
+        ])
+    ]),
+
+    dbc.Row([
+        dbc.Row([
+            dbc.Col([
+                dcc.Dropdown(
+                    id='regiao5',
+                    multi=True,
+                    value=df['regiao'].unique()[:2],
+                    options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
+                )
+            ])
+        ]),
+        dbc.Row([
+            dbc.Col([
+                dcc.Graph(id='scatterplot_condicao_metereologica')
+            ])
         ])
     ]),
 
@@ -193,59 +241,10 @@ def barPlotMortePorRegiao(regiao):
     return fig.update_layout(bargap=0.0, bargroupgap=0.05)
 
 @app.callback(
-    Output('scatterplot', 'figure'),
-    Input('regiao', 'value'),
+    Output('scatterplot_horario_acidente', 'figure'),
+    Input('regiao3', 'value'),
 )
-def scatterFeridosPorTipo(regiao):
-
-    # FERIDOS GRAVES ===================================================================
-
-    #df_filtrado = df[(df['regiao'].isin(regiao)) & (df['feridos_graves'] > 0)]
-
-    #df_feridos = df_filtrado.groupby(['tipo_acidente', 'regiao'])['feridos_graves'].value_counts().sort_values(ascending=False).reset_index()
-
-    #df_feridos['feridos_graves'] = [df_feridos['feridos_graves'][i] * df_feridos['count'][i] for i in range(0,len(df_feridos))]
-
-    #df_feridos = df_feridos.groupby(['tipo_acidente', 'regiao'])['feridos_graves'].sum().sort_values(ascending=False).reset_index()
-
-    #fig = px.scatter(
-        #df_feridos,
-        #x="tipo_acidente",
-        #y="feridos_graves",
-        #size="feridos_graves",
-        #color="regiao",
-        #title=f"Feridos Graves por Tipo de Acidente - Região {regiao}",
-        #labels={"feridos_graves": "Total de Feridos Graves", "tipo_acidente": "Tipo de Acidente"},
-    #)
-    
-    #fig.update_traces(marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
-    #fig.update_layout(xaxis_tickangle=-45)
-
-    #return fig
-    
-    # CONDICAO METEREOLOGICA ======================================================
-
-    #df_filtrado = df[df['regiao'].isin(regiao)]
-
-    #df_causa_horario = df_filtrado.groupby(['causa_acidente', 'regiao'])['condicao_metereologica'].value_counts().sort_values(ascending=True).reset_index(name='count')
-
-
-    #fig = px.scatter(
-        #df_causa_horario,
-        #height=700,
-        #x="causa_acidente",
-        #y="condicao_metereologica",
-        #size="count",
-        #color="count",
-        #title=f"frequencia de horario por causa de acidente - Região {regiao}",
-        #labels={"horario": "faixa de hora do acidetnte", "causa_acidente": "motivo do acidente"},
-    #)
-    
-    #fig.update_traces(marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
-    #fig.update_layout(xaxis_tickangle=-45)
-
-    #return fig
-
+def scatterHorarioAcidente(regiao):
 
 # HORARIO ============================================================
 
@@ -260,6 +259,67 @@ def scatterFeridosPorTipo(regiao):
         width=1500,
         x="horario",
         y="causa_acidente",
+        size="count",
+        color="count",
+        title=f"frequencia de horario por causa de acidente - Região {regiao}",
+        labels={"horario": "faixa de hora do acidetnte", "causa_acidente": "motivo do acidente"},
+    )
+    
+    fig.update_traces(marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
+    fig.update_layout(xaxis_tickangle=-45)
+
+    return fig
+
+
+
+
+@app.callback(
+    Output('scatterplot_feridos_acidente', 'figure'),
+    Input('regiao4', 'value'),
+)
+def acidente_horario(regiao):
+
+    df_filtrado = df[(df['regiao'].isin(regiao)) & (df['feridos_graves'] > 0)]
+
+    df_feridos = df_filtrado.groupby(['tipo_acidente', 'regiao'])['feridos_graves'].value_counts().sort_values(ascending=False).reset_index()
+
+    df_feridos['feridos_graves'] = [df_feridos['feridos_graves'][i] * df_feridos['count'][i] for i in range(0,len(df_feridos))]
+
+    df_feridos = df_feridos.groupby(['tipo_acidente', 'regiao'])['feridos_graves'].sum().sort_values(ascending=False).reset_index()
+
+    fig = px.scatter(
+        df_feridos,
+        x="tipo_acidente",
+        y="feridos_graves",
+        size="feridos_graves",
+        color="regiao",
+        title=f"Feridos Graves por Tipo de Acidente - Região {regiao}",
+        labels={"feridos_graves": "Total de Feridos Graves", "tipo_acidente": "Tipo de Acidente"},
+    )
+    
+    fig.update_traces(marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
+    fig.update_layout(xaxis_tickangle=-45)
+
+    return fig
+
+@app.callback(
+    Output('scatterplot_condicao_metereologica', 'figure'),
+    Input('regiao5', 'value'),
+)
+def scatterHorarioAcidente(regiao):
+
+     # CONDICAO METEREOLOGICA ======================================================
+
+    df_filtrado = df[df['regiao'].isin(regiao)]
+
+    df_causa_horario = df_filtrado.groupby(['causa_acidente', 'regiao'])['condicao_metereologica'].value_counts().sort_values(ascending=True).reset_index(name='count')
+
+
+    fig = px.scatter(
+        df_causa_horario,
+        height=700,
+        x="causa_acidente",
+        y="condicao_metereologica",
         size="count",
         color="count",
         title=f"frequencia de horario por causa de acidente - Região {regiao}",
