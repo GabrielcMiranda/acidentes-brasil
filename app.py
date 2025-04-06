@@ -103,13 +103,13 @@ app.layout = dbc.Container([
         ])
     ]),
 
-# FREQUENCIA DOS TIPOS DE ACIDENTE POR REGIAO ==============================================
+# FREQUENCIA DE MORTE DOS TIPOS DE ACIDENTE POR REGIAO ==============================================
     #titulo
      dbc.Row([
         dbc.Col([
             html.Br(),
             html.Br(),
-            html.H2('Quantidade de mortes por tipo de acidente:'),
+            html.H2('Quantidade de vítimas por tipo de acidente:'),
         ]),
     ]),
     #select box
@@ -127,11 +127,29 @@ app.layout = dbc.Container([
                     value=df['regiao'].unique()[0],
                     options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
                 )
-            ])
+            ]),
         ]),
         dbc.Col([
-            dbc.Row([])
-        ])
+            html.Br(),
+            html.Br(),
+            dbc.Row([
+                html.H4('Escolha o tipo de vítima:')
+            ]),
+            dbc.Row([
+                dcc.Dropdown(
+                    id='tipo_vitima',
+                    multi=False,
+                    value='pessoas',
+                    options=[{'label': 'Pessoas', 'value': 'pessoas'},
+                            {'label': 'Mortos', 'value': 'mortos'},
+                            {'label': 'Feridos graves', 'value': 'feridos_graves'},
+                            {'label': 'Feridos leves', 'value': 'feridos_leves'},
+                            {'label': 'Feridos', 'value': 'feridos'},
+                            {'label': 'Ilesos', 'value': 'ilesos'},
+                            {'label': 'Ignorados', 'value': 'ignorados'},]
+                )
+            ]),
+        ]),
     ]),
     #grafico
     dbc.Row([
@@ -329,23 +347,24 @@ def barPlotRegiaoDiaSemana(regiao):
                  barmode="group")
     return fig
 
-# funcao frequencia de morte dos tipos de acidente por regiao
+# funcao frequencia de vitimas dos tipos de acidente por regiao
 
 @app.callback(
     Output('bar_plot_tipo_acidente_regiao', 'figure'),
     Input('regiao2', 'value'),
+    Input('tipo_vitima','value')
 )
-def barPlotMortePorRegiao(regiao):
-    df_filtrado = df[(df['regiao']==regiao) & (df['mortos'] > 0)]
+def barPlotMortePorRegiao(regiao, vitima):
+    df_filtrado = df[(df['regiao']==regiao) & (df[vitima] > 0)]
 
-    df_mortes = df_filtrado.groupby(['tipo_acidente', 'regiao'])['mortos'].value_counts().sort_values(ascending=False).reset_index()
+    df_vitimas = df_filtrado.groupby(['tipo_acidente', 'regiao'])[vitima].value_counts().sort_values(ascending=False).reset_index()
 
-    df_mortes['mortos'] = [df_mortes['mortos'][i] * df_mortes['count'][i] for i in range(0,len(df_mortes))]
+    df_vitimas[vitima] = [df_vitimas[vitima][i] * df_vitimas['count'][i] for i in range(0,len(df_vitimas))]
 
-    df_mortes = df_mortes.groupby(['tipo_acidente', 'regiao'])['mortos'].sum().sort_values(ascending=False).reset_index()
+    df_vitimas = df_vitimas.groupby(['tipo_acidente', 'regiao'])[vitima].sum().sort_values(ascending=False).reset_index()
 
-    fig = px.bar(df_mortes,  
-                 x='mortos',
+    fig = px.bar(df_vitimas,  
+                 x=vitima,
                  y='tipo_acidente',
                  color='tipo_acidente',
                  barmode="overlay")
