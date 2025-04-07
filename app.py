@@ -128,8 +128,26 @@ app.layout = dbc.Container([
             ])
         ]),
         dbc.Col([
-            dbc.Row([])
-        ])
+            html.Br(),
+            html.Br(),
+            dbc.Row([
+                html.H4('Escolha o tipo de vítima:')
+            ]),
+            dbc.Row([
+                dcc.Dropdown(
+                    id='tipo_vitima',
+                    multi=False,
+                    value='pessoas',
+                    options=[{'label': 'Pessoas', 'value': 'pessoas'},
+                            {'label': 'Mortos', 'value': 'mortos'},
+                            {'label': 'Feridos graves', 'value': 'feridos_graves'},
+                            {'label': 'Feridos leves', 'value': 'feridos_leves'},
+                            {'label': 'Feridos', 'value': 'feridos'},
+                            {'label': 'Ilesos', 'value': 'ilesos'},
+                            {'label': 'Ignorados', 'value': 'ignorados'}]
+                )
+            ]),
+        ]),
     ]),
     #grafico
     dbc.Row([
@@ -221,57 +239,6 @@ app.layout = dbc.Container([
         dbc.Row([
             dbc.Col([
                 dcc.Graph(id='scatterplot_horario_acidente')
-            ])
-        ])
-    ]),
-
-# RELACAO FERIDOS ACIDENTE =====================================================================
-
-    #titulo
-    dbc.Row([
-        dbc.Col([
-            html.Br(),
-            html.Br(),
-            html.H2('Relação entre número de feridos graves e acidentes:'),
-        ]),
-        #select box
-        dbc.Row([
-            dbc.Col([
-                html.Br(),
-                html.Br(),
-                dbc.Row([
-                    html.H4('Escolha a região que deseja analisar:')
-                ]),
-                dbc.Row([
-                    dcc.Dropdown(
-                    id='regiao4',
-                    multi=True,
-                    value=df['regiao'].unique()[0:],
-                    options=df['regiao'].unique()
-                )
-                ])
-            ]),
-            dbc.Col([
-                html.Br(),
-                html.Br(),
-                dbc.Row([
-                    html.H4('Escolha a relação de acidente:')
-                ]),
-                dbc.Row([
-                    dcc.Dropdown(
-                    id='tipo_acidente2',
-                    multi=False,
-                    value='causa_acidente',
-                    options=[{'label': 'Causa do Acidente', 'value': 'causa_acidente'},
-                            {'label': 'Tipo de Acidente', 'value': 'tipo_acidente'}]
-                )
-                ]),
-            ])
-        ]),
-        #grafico
-        dbc.Row([
-            dbc.Col([
-                dcc.Graph(id='scatterplot_feridos_acidente')
             ])
         ])
     ]),
@@ -371,26 +338,40 @@ def barPlotAcidentesDiaSemana(regiao):
 @app.callback(
     Output('bar_plot_tipo_acidente_regiao', 'figure'),
     Input('regiao2', 'value'),
+    Input('tipo_vitima','value')
 )
-def barPlotMortePorRegiao(regiao):
-    df_filtrado = df[(df['regiao']==regiao) & (df['mortos'] > 0)]
+def barPlotMortePorRegiao(regiao, vitima):
+    df_filtrado = df[(df['regiao']==regiao) & (df[vitima] > 0)]
 
-    df_mortes = df_filtrado.groupby(['tipo_acidente', 'regiao'])['mortos'].value_counts().sort_values(ascending=False).reset_index()
+    df_vitimas = df_filtrado.groupby(['tipo_acidente', 'regiao'])[vitima].value_counts().sort_values(ascending=False).reset_index()
 
-    df_mortes['mortos'] = [df_mortes['mortos'][i] * df_mortes['count'][i] for i in range(0,len(df_mortes))]
+    df_vitimas[vitima] = [df_vitimas[vitima][i] * df_vitimas['count'][i] for i in range(0,len(df_vitimas))]
 
-    df_mortes = df_mortes.groupby(['tipo_acidente', 'regiao'])['mortos'].sum().sort_values(ascending=False).reset_index()
+    df_vitimas = df_vitimas.groupby(['tipo_acidente', 'regiao'])[vitima].sum().sort_values(ascending=False).reset_index()
 
-    fig = px.bar(df_mortes,  
-                 x='mortos',
+    fig = px.bar(df_vitimas,  
+                 x=vitima,
                  y='tipo_acidente',
                  color='tipo_acidente',
                  barmode="overlay")
-    
+
     fig.update_layout(bargap=0.0,
-                      bargroupgap=0.05, 
-                      xaxis_title='Mortos',
+                      bargroupgap=0.05,
+                      xaxis_title=vitima, 
                       yaxis_title='Tipo de Acidente')
+    
+    if vitima == 'pessoas':
+        fig.update_layout(xaxis_title='Pessoas')
+    elif vitima == 'mortos':
+        fig.update_layout(xaxis_title='Mortos')
+    elif vitima == 'feridos_graves':
+        fig.update_layout(xaxis_title='Feridos graves')
+    elif vitima == 'feridos_leves':
+        fig.update_layout(xaxis_title='Feridos leves')
+    elif vitima == 'feridos':
+        fig.update_layout(xaxis_title='Feridos')
+    elif vitima == 'ilesos':
+        fig.update_layout(xaxis_title='Ilesos')
 
     return fig
 
@@ -452,47 +433,6 @@ def HorarioAcidente(regiao, acidente):
         fig.update_layout(xaxis_title='Total de Feridos Graves',
                           yaxis_title='Causa do Acidente')
     
-    fig.update_traces(marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
-
-    return fig
-
-# funcao da relacao feridos acidente
-
-@app.callback(
-    Output('scatterplot_feridos_acidente', 'figure'),
-    Input('regiao4', 'value'),
-    Input('tipo_acidente2','value')
-)
-def feridosGraves(regiao, acidente):
-
-    df_filtrado = df[(df['regiao'].isin(regiao)) & (df['feridos_graves'] > 0)]
-
-    top_acidentes = df_filtrado[acidente].value_counts().nlargest(10).index
-
-    df_filtrado_top = df_filtrado[df_filtrado[acidente].isin(top_acidentes)]
-
-    df_feridos = df_filtrado_top.groupby([acidente, 'regiao'])['feridos_graves'].value_counts().sort_values(ascending=False).reset_index()
-
-    df_feridos['feridos_graves'] = [df_feridos['feridos_graves'][i] * df_feridos['count'][i] for i in range(0,len(df_feridos))]
-
-    df_feridos = df_feridos.groupby([acidente, 'regiao'])['feridos_graves'].sum().sort_values(ascending=False).reset_index()
-
-    fig = px.scatter(
-        df_feridos,
-        height=500,
-        x="feridos_graves",
-        y=acidente,
-        size="feridos_graves",
-        color="regiao",
-    )
-
-    if acidente == 'tipo_acidente':
-        fig.update_layout(xaxis_title='Total de Feridos Graves',
-                          yaxis_title='Tipo de Acidente')
-    elif acidente == 'causa_acidente':
-        fig.update_layout(xaxis_title='Total de Feridos Graves',
-                          yaxis_title='Causa do Acidente')
-
     fig.update_traces(marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
 
     return fig
