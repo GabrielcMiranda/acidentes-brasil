@@ -19,7 +19,6 @@ df['delegacia'] = df['delegacia'].fillna(df['uop'].apply(lambda x: '-'.join(x.sp
 df['horario'] = pd.to_datetime(df['horario'], format='%H:%M:%S')
 df['hora'] = df['horario'].dt.hour
 
-
 # Definindo regioes
 norte = ['PA', 'AM', 'RR', 'RO', 'AC', 'AP', 'TO']
 nordeste = ['MA', 'PI', 'BA', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE']
@@ -41,7 +40,6 @@ def definir_regiao(estado):
 
 df['regiao'] = df['uf'].apply(lambda x: definir_regiao(x))
 
-
 # funcao nuvem de palavras
 def plotNuvemCausaAcidente():
 
@@ -50,17 +48,17 @@ def plotNuvemCausaAcidente():
     palavras_nuvem = " ".join(df['causa_acidente'])  
     nuvem = WordCloud(width=1000, height=500, background_color='white', stopwords=stopwords).generate(palavras_nuvem)
 
-    fig = px.imshow(nuvem.to_array(), height=1000)
-    return fig.update_layout(
-                  xaxis=dict(showticklabels=False),
-                  yaxis=dict(showticklabels=False))
+    fig = px.imshow(nuvem.to_array(), height=700)
+    return fig.update_layout(xaxis=dict(showticklabels=False),
+                             yaxis=dict(showticklabels=False))
 
 app.layout = dbc.Container([
 
-    # NOME DO SITE
+# NOME DO SITE
     dbc.Row([
         dbc.Col([
-            html.H1('incidentes de trânsito no Brasil'),
+            html.Br(),
+            html.H1('Incidentes de trânsito no Brasil - 2022'),
             html.Hr(),
             html.H5('Este dashboard tem como objetivo comparar os perfis de incidentes de trânsito entre diferentes regiões do Brasil.')
         ]),
@@ -70,7 +68,7 @@ app.layout = dbc.Container([
     #titulo
     dbc.Row([
         dbc.Col([
-            html.Br(),
+            html.Hr(),
             html.Br(),
             html.H2('Quantidade de acidentes por dia da semana:'),
         ]),
@@ -124,7 +122,7 @@ app.layout = dbc.Container([
                 dcc.Dropdown(
                     id='regiao2',
                     multi=False,
-                    value=df['regiao'].unique()[0],
+                    value=df['regiao'].unique()[4],
                     options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
                 )
             ])
@@ -140,20 +138,41 @@ app.layout = dbc.Container([
         ])
     ]),
 
-# NUVEM DE PALAVRAS =================================================================
-     dbc.Row([
-        dbc.Col([
-            html.Br(),
-            html.Br(),
-            html.H2('Nuvem de palavras das causas de acidente:'),
-        ]),
-    ]),
-    #grafico
+#RELACAO DE ACIDENTES POR HORARIO ==========================================================
+    #titulo
     dbc.Row([
         dbc.Col([
-            dcc.Graph(id='nuvem_palavras', figure=plotNuvemCausaAcidente())
+            html.Br(),
+            html.Br(),
+            html.H2('Relação entre quantidade de acidentes por hora do dia:'),
+        ]),
+        dbc.Row([
+            dbc.Col([
+                html.Br(),
+                html.Br(),
+                dbc.Row([
+                    html.H4('Escolha a região que deseja analisar:')
+                ]),
+                dbc.Row([
+                    dcc.Dropdown(
+                        id='regiao6',
+                        multi=False,
+                        value=df['regiao'].unique()[4],
+                        options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
+                    )
+                ]),
+            ]),
+            dbc.Col([
+                dbc.Row([])
+            ]),
+        ]),
+        # grafico
+        dbc.Row([
+            dbc.Col([
+                dcc.Graph(id='hist_acidentes_horario')
+            ])
         ])
-    ]),
+    ]),    
 
 # RELACAO HORARIO ACIDENTE =============================================================
 
@@ -174,11 +193,11 @@ app.layout = dbc.Container([
                 ]),
                 dbc.Row([
                     dcc.Dropdown(
-                    id='regiao3',
-                    multi=True,
-                    value=df['regiao'].unique()[:2],
-                    options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
-                )
+                        id='regiao3',
+                        multi=True,
+                        value=df['regiao'].unique()[0:],
+                        options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
+                    )
                 ]),
             ]),
             dbc.Col([
@@ -189,12 +208,12 @@ app.layout = dbc.Container([
                 ]),
                 dbc.Row([
                     dcc.Dropdown(
-                    id='tipo_acidente1',
-                    multi=False,
-                    value='causa_acidente',
-                    options=[{'label': 'Causa do Acidente', 'value': 'causa_acidente'},
-                            {'label': 'Tipo de Acidente', 'value': 'tipo_acidente'}]
-                )
+                        id='tipo_acidente1',
+                        multi=False,
+                        value='causa_acidente',
+                        options=[{'label': 'Causa do Acidente', 'value': 'causa_acidente'},
+                                {'label': 'Tipo de Acidente', 'value': 'tipo_acidente'}]
+                    )
                 ]),
             ])
         ]),
@@ -227,8 +246,8 @@ app.layout = dbc.Container([
                     dcc.Dropdown(
                     id='regiao4',
                     multi=True,
-                    value=df['regiao'].unique()[:2],
-                    options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
+                    value=df['regiao'].unique()[0:],
+                    options=df['regiao'].unique()
                 )
                 ])
             ]),
@@ -277,8 +296,8 @@ app.layout = dbc.Container([
                     dcc.Dropdown(
                     id='regiao5',
                     multi=True,
-                    value=df['regiao'].unique()[:2],
-                    options=[{'label': regiao, 'value': regiao} for regiao in df['regiao'].unique()]
+                    value=df['regiao'].unique()[0:],
+                    options=df['regiao'].unique()
                 )
                 ]),
             ]),
@@ -307,8 +326,21 @@ app.layout = dbc.Container([
         ])
     ]),
 
+# NUVEM DE PALAVRAS =================================================================
+    dbc.Row([
+        dbc.Col([
+            html.Br(),
+            html.Br(),
+            html.H2('Nuvem de palavras das causas de acidente:'),
+        ]),
+    ]),
+    #grafico
+    dbc.Row([
+        dbc.Col([
+            dcc.Graph(id='nuvem_palavras', figure=plotNuvemCausaAcidente())
+        ])
+    ]),
 ])
-
 
 # funcao quantidade de acidentes por dia da semana
 
@@ -316,17 +348,22 @@ app.layout = dbc.Container([
     Output('bar_plot_regiao_dia_semana', 'figure'),
     Input('regiao', 'value'),
 )
-def barPlotRegiaoDiaSemana(regiao):
+def barPlotAcidentesDiaSemana(regiao):
     df_filtrado = df[df['regiao'].isin(regiao)]
 
-    semana = ['segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado','domingo']
+    semana = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado']
     df_regiao_dia_semana = df_filtrado.groupby(['dia_semana', 'regiao']).size().reset_index(name='quantidade')
 
     fig = px.bar(df_regiao_dia_semana,  
                  x='dia_semana',
                  y='quantidade',
                  color='regiao',
-                 barmode="group")
+                 barmode="group",
+                 category_orders={'dia_semana': semana})
+    
+    fig.update_layout(xaxis_title='Dia da semana',
+                      yaxis_title='Quantidade de acidentes')
+
     return fig
 
 # funcao frequencia de morte dos tipos de acidente por regiao
@@ -349,7 +386,37 @@ def barPlotMortePorRegiao(regiao):
                  y='tipo_acidente',
                  color='tipo_acidente',
                  barmode="overlay")
-    return fig.update_layout(bargap=0.0, bargroupgap=0.05)
+    
+    fig.update_layout(bargap=0.0,
+                      bargroupgap=0.05, 
+                      xaxis_title='Mortos',
+                      yaxis_title='Tipo de Acidente')
+
+    return fig
+
+# funcao histograma acidentes por hora do dia
+@app.callback(
+    Output('hist_acidentes_horario', 'figure'),
+    Input('regiao6', 'value'),
+)
+def histAcidentesHora(regiao):
+    df_filtrado = df[df['regiao'] == regiao]
+
+    df_filtrado = df_filtrado.groupby(['hora', 'regiao']).value_counts().reset_index(name='quantidade')
+
+    fig = px.histogram(df_filtrado,  
+                       x='hora',
+                       nbins=24)
+    
+    fig.update_layout(
+        xaxis=dict(tickvals=[x for x in range(0,24)]),
+        xaxis_title='Hora do Dia',
+        yaxis_title='Número de Acidentes',
+    )
+
+    fig.update_traces(marker_line_color='black', marker_line_width=1)
+
+    return fig
 
 # funcao da relacao horario acidente
 
@@ -362,12 +429,11 @@ def HorarioAcidente(regiao, acidente):
 
     df_filtrado = df[df['regiao'].isin(regiao)]
 
-    top_acidentes = (df_filtrado[acidente].value_counts().nlargest(10).index)
+    top_acidentes = df_filtrado[acidente].value_counts().nlargest(10).index
 
     df_filtrado_top = df_filtrado[df_filtrado[acidente].isin(top_acidentes)]
 
-    df_causa_horario = df_filtrado_top.groupby([acidente, 'regiao'])['horario'].value_counts().sort_values(ascending=True).reset_index(name='count')
-
+    df_causa_horario = df_filtrado_top.groupby([acidente, 'regiao'])['horario'].value_counts().sort_values(ascending=True).reset_index(name='quantidade')
 
     fig = px.scatter(
         df_causa_horario,
@@ -375,13 +441,18 @@ def HorarioAcidente(regiao, acidente):
         width=1350,
         x="horario",
         y=acidente,
-        size="count",
-        color="count",
-        labels={"horario": "faixa de hora do acidetnte", "causa_acidente": "motivo do acidente"},
+        size="quantidade",
+        color="quantidade",
     )
+
+    if acidente == 'tipo_acidente':
+        fig.update_layout(xaxis_title='Total de Feridos Graves',
+                          yaxis_title='Tipo de Acidente')
+    elif acidente == 'causa_acidente':
+        fig.update_layout(xaxis_title='Total de Feridos Graves',
+                          yaxis_title='Causa do Acidente')
     
     fig.update_traces(marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
-    fig.update_layout(xaxis_tickangle=-45)
 
     return fig
 
@@ -396,7 +467,7 @@ def feridosGraves(regiao, acidente):
 
     df_filtrado = df[(df['regiao'].isin(regiao)) & (df['feridos_graves'] > 0)]
 
-    top_acidentes = (df_filtrado[acidente].value_counts().nlargest(10).index)
+    top_acidentes = df_filtrado[acidente].value_counts().nlargest(10).index
 
     df_filtrado_top = df_filtrado[df_filtrado[acidente].isin(top_acidentes)]
 
@@ -413,11 +484,16 @@ def feridosGraves(regiao, acidente):
         y=acidente,
         size="feridos_graves",
         color="regiao",
-        labels={"feridos_graves": "Total de Feridos Graves", "tipo_acidente": "Tipo de Acidente"},
     )
-    
+
+    if acidente == 'tipo_acidente':
+        fig.update_layout(xaxis_title='Total de Feridos Graves',
+                          yaxis_title='Tipo de Acidente')
+    elif acidente == 'causa_acidente':
+        fig.update_layout(xaxis_title='Total de Feridos Graves',
+                          yaxis_title='Causa do Acidente')
+
     fig.update_traces(marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
-    fig.update_layout(xaxis_tickangle=-45)
 
     return fig
 
@@ -432,25 +508,31 @@ def condicaoMetereologica(regiao, acidente):
 
     df_filtrado = df[df['regiao'].isin(regiao)]
 
-    top_acidentes = (df_filtrado[acidente].value_counts().nlargest(10).index)
+    top_acidentes = df_filtrado[acidente].value_counts().nlargest(10).index
 
     df_filtrado_top = df_filtrado[df_filtrado[acidente].isin(top_acidentes)]
 
-    df_causa_horario = df_filtrado_top.groupby([acidente, 'regiao'])['condicao_metereologica'].value_counts().sort_values(ascending=True).reset_index(name='count')
-
+    df_causa_condicao = df_filtrado_top.groupby([acidente, 'regiao'])['condicao_metereologica'].value_counts().sort_values(ascending=True).reset_index(name='quantidade')
 
     fig = px.scatter(
-        df_causa_horario,
+        df_causa_condicao,
         height=700,
         x=acidente,
         y="condicao_metereologica",
-        size="count",
-        color="count",
-        labels={"horario": "faixa de hora do acidetnte", "causa_acidente": "motivo do acidente"},
+        size="quantidade",
+        color="quantidade",
     )
+
+    if acidente == 'tipo_acidente':
+        fig.update_layout(xaxis_tickangle=-45, 
+                          xaxis_title='Tipo de Acidente',
+                          yaxis_title='Condição Metereológica')
+    elif acidente == 'causa_acidente':
+        fig.update_layout(xaxis_tickangle=-45, 
+                          xaxis_title='Causa do Acidente',
+                          yaxis_title='Condição Metereológica')
     
     fig.update_traces(marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
-    fig.update_layout(xaxis_tickangle=-45)
 
     return fig
 
