@@ -60,7 +60,7 @@ app.layout = dbc.Container([
             html.Br(),
             html.H1('Incidentes de trânsito no Brasil - 2022'),
             html.Hr(),
-            html.H5('Este dashboard tem como objetivo comparar os perfis de incidentes de trânsito entre diferentes regiões do Brasil.')
+            html.H5('Este dashboard tem como objetivo analisar os perfis de incidentes de trânsito no Brasil.')
         ]),
     ]),
 
@@ -76,7 +76,6 @@ app.layout = dbc.Container([
     #select box
     dbc.Row([
         dbc.Col([
-            html.Br(),
             html.Br(),
             dbc.Row([
                 html.H4('Escolha a região que deseja analisar:')
@@ -105,7 +104,7 @@ app.layout = dbc.Container([
     #titulo
      dbc.Row([
         dbc.Col([
-            html.Br(),
+            html.Hr(),
             html.Br(),
             html.H2('Quantidade de mortes por tipo de acidente:'),
         ]),
@@ -113,7 +112,6 @@ app.layout = dbc.Container([
     #select box
     dbc.Row([
         dbc.Col([
-            html.Br(),
             html.Br(),
             dbc.Row([
                 html.H4('Escolha a região que deseja analisar:')
@@ -128,7 +126,6 @@ app.layout = dbc.Container([
             ])
         ]),
         dbc.Col([
-            html.Br(),
             html.Br(),
             dbc.Row([
                 html.H4('Escolha o tipo de vítima:')
@@ -156,17 +153,16 @@ app.layout = dbc.Container([
         ])
     ]),
 
-#RELACAO DE ACIDENTES POR HORARIO ==========================================================
+# HISTOGRAMA RELACAO DE ACIDENTES POR HORARIO ==========================================================
     #titulo
     dbc.Row([
         dbc.Col([
-            html.Br(),
+            html.Hr(),
             html.Br(),
             html.H2('Relação entre quantidade de acidentes por hora do dia:'),
         ]),
         dbc.Row([
             dbc.Col([
-                html.Br(),
                 html.Br(),
                 dbc.Row([
                     html.H4('Escolha a região que deseja analisar:')
@@ -197,14 +193,13 @@ app.layout = dbc.Container([
     #titulo
     dbc.Row([
         dbc.Col([
-            html.Br(),
+            html.Hr(),
             html.Br(),
             html.H2('Relação entre horário e acidentes:'),
         ]),
         #select box
         dbc.Row([
             dbc.Col([
-                html.Br(),
                 html.Br(),
                 dbc.Row([
                     html.H4('Escolha a região que deseja analisar:')
@@ -219,7 +214,6 @@ app.layout = dbc.Container([
                 ]),
             ]),
             dbc.Col([
-                html.Br(),
                 html.Br(),
                 dbc.Row([
                     html.H4('Escolha a relação de acidente:')
@@ -247,14 +241,13 @@ app.layout = dbc.Container([
     #titulo
     dbc.Row([
         dbc.Col([
-            html.Br(),
+            html.Hr(),
             html.Br(),
             html.H2('Relação entre condição metereológica e acidentes:'),
         ]),
         #selectbox
         dbc.Row([
             dbc.Col([
-                html.Br(),
                 html.Br(),
                 dbc.Row([
                     html.H4('Escolha a região que deseja analisar:')
@@ -269,7 +262,6 @@ app.layout = dbc.Container([
                 ]),
             ]),
             dbc.Col([
-                html.Br(),
                 html.Br(),
                 dbc.Row([
                     html.H4('Escolha a relação de acidente:')
@@ -296,7 +288,7 @@ app.layout = dbc.Container([
 # NUVEM DE PALAVRAS =================================================================
     dbc.Row([
         dbc.Col([
-            html.Br(),
+            html.Hr(),
             html.Br(),
             html.H2('Nuvem de palavras das causas de acidente:'),
         ]),
