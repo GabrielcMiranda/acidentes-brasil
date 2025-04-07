@@ -58,9 +58,9 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.Br(),
-            html.H1('Incidentes de trânsito no Brasil - 2022'),
+            html.H1('Acidentes de trânsito no Brasil - 2022'),
             html.Hr(),
-            html.H5('Este dashboard tem como objetivo analisar os perfis de incidentes de trânsito no Brasil.')
+            html.H5('Este dashboard tem como objetivo analisar os perfis dos Acidentes de trânsito no Brasil.')
         ]),
     ]),
 
