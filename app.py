@@ -5,8 +5,6 @@ from dash_bootstrap_templates import ThemeSwitchAIO
 from wordcloud import WordCloud, STOPWORDS
 import plotly.express as px
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 app = dash.Dash(__name__, external_stylesheets = [dbc.themes.LUX])
 server = app.server
@@ -106,7 +104,7 @@ app.layout = dbc.Container([
         dbc.Col([
             html.Hr(),
             html.Br(),
-            html.H2('Quantidade de mortes por tipo de acidente:'),
+            html.H2('Quantidade de vítimas por tipo de acidente:'),
         ]),
     ]),
     #select box
@@ -347,9 +345,7 @@ def barPlotMortePorRegiao(regiao, vitima):
                  color='tipo_acidente',
                  barmode="overlay")
 
-    fig.update_layout(bargap=0.0,
-                      bargroupgap=0.05,
-                      xaxis_title=vitima, 
+    fig.update_layout(xaxis_title=vitima, 
                       yaxis_title='Tipo de Acidente')
     
     if vitima == 'pessoas':
@@ -420,12 +416,12 @@ def HorarioAcidente(regiao, acidente):
 
     if acidente == 'tipo_acidente':
         fig.update_layout(xaxis_title='Total de Feridos Graves',
-                          yaxis_title='Tipo de Acidente')
+                          yaxis_title='Tipo de Acidente',
+                          xaxis_tickformat='%H:%M')
     elif acidente == 'causa_acidente':
         fig.update_layout(xaxis_title='Total de Feridos Graves',
-                          yaxis_title='Causa do Acidente')
-    
-    fig.update_traces(marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
+                          yaxis_title='Causa do Acidente',
+                          xaxis_tickformat='%H:%M')
 
     return fig
 
@@ -463,8 +459,6 @@ def condicaoMetereologica(regiao, acidente):
         fig.update_layout(xaxis_tickangle=-45, 
                           xaxis_title='Causa do Acidente',
                           yaxis_title='Condição Metereológica')
-    
-    fig.update_traces(marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
 
     return fig
 
